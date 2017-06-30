@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- namespace必须指向Dao接口 -->
+<mapper namespace="com.asgab.repository.ProcessMapper">
+
+	<select id="get" parameterType="map" resultType="Process">
+		SELECT processId,payTranNum,randomKey,status,description,remarks,createDate,operateDate,operateBy,operateByName,randomIdentification,isUpdated,ipAddr,realAddAmount
+		FROM ss_process where 1=1
+		<if test="payTranNum != null"> 
+			AND payTranNum=#{payTranNum}
+		</if>
+		<if test="processId != null"> 
+			AND processId=#{processId}
+		</if>
+		<if test="status != null"> 
+			AND status=#{status}
+		</if>
+		<if test="isUpdated != null"> 
+			AND isUpdated=#{isUpdated}
+		</if>
+		<if test="randomKey != null"> 
+			AND randomKey=#{randomKey}
+		</if>
+		<if test="randomIdentification != null"> 
+			AND randomIdentification=#{randomIdentification}
+		</if>
+	</select>
+	
+	<select id="getById" parameterType="long" resultType="Process">
+		SELECT processId,payTranNum,randomKey,status,description,remarks,createDate,operateDate,operateBy,operateByName,randomIdentification,isUpdated,ipAddr,realAddAmount
+		FROM ss_process where processId=#{processId}
+	</select>
+	
+	<select id="getLastProcess" parameterType="long" resultType="Process">
+		select processId,payTranNum,randomKey,status,description,remarks,createDate,operateDate,operateBy,operateByName,randomIdentification,isUpdated,ipAddr,realAddAmount 
+		from ss_process where isUpdated = 1 and paytrannum in (
+		select paytrannum from ss_process where processId = #{processId} )
+		<![CDATA[ 
+			and processId < #{processId}
+		]]>
+		order by processId desc
+		limit 0,1
+		
+	</select>
+
+
+	<insert id="save" parameterType="Process" useGeneratedKeys="true" keyProperty="processId">
+		insert into ss_process (
+		payTranNum,randomKey,status,description,remarks,createDate,operateDate,operateBy,operateByName,randomIdentification,isUpdated,ipAddr,realAddAmount)
+		values (
+		#{payTranNum},#{randomKey},#{status},#{description},#{remarks},#{createDate},#{operateDate},#{operateBy},#{operateByName},#{randomIdentification},#{isUpdated},#{ipAddr},#{realAddAmount})
+	</insert>
+	
+	<update id="update" parameterType="Process">
+		update ss_process set 
+		randomKey=#{randomKey},
+		status=#{status},
+		description=#{description},
+		remarks=#{remarks},
+		createDate=#{createDate},
+		operateDate=#{operateDate},
+		operateBy=#{operateBy},
+		operateByName=#{operateByName},
+		randomIdentification=#{randomIdentification},
+		isUpdated=#{isUpdated},
+		ipAddr=#{ipAddr},
+		realAddAmount=#{realAddAmount}
+		where processId = #{processId}
+	</update>
+	
+	<select id="getProcessesByPaytranNums" parameterType="Long" resultType="Process">
+		SELECT processId,payTranNum,randomKey,status,description,remarks,createDate,operateDate,operateBy,operateByName,randomIdentification,isUpdated,ipAddr,realAddAmount
+		FROM ss_process where isUpdated=1 and payTranNum=#{payTranNum} order by processId asc
+		
+	</select>
+
+</mapper> 

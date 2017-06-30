@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- namespace必须指向Dao接口 -->
+<mapper namespace="com.asgab.repository.xmo.UserXMOMapper">
+	<!--
+		获取用户: 输出直接映射到对象, login_name列要"as loginName"以方便映射 ,team_id as "team.id"创建team对象并赋值
+	-->
+	<select id="get" parameterType="long" resultType="User">
+		select id, name ,username as loginName,salt,useremail as email 
+		from users
+		where  id=#{id} 
+	</select>
+
+	<!-- 查询用户,演示: 1.输入用map传入多个参数 2.<where>语句, 智能添加where和and关键字 3.输出直接映射对象 -->
+	<select id="search" parameterType="map" resultType="User">
+		select distinct(u.id) as id, u.name as name , u.username as loginName, 
+		u.salt as salt, u.password as password,u.user_status as status,u.useremail as email
+		from users u left join users_groups ug on ug.user_id = u.id 
+		left join groups g on g.id = ug.group_id
+		where  u.mail_active = '1' and g.group_name like '%Automation%'
+		<if test="loginName != null">
+			and u.username like "%"#{loginName}"%"
+		</if>
+		<if test="name != null">
+			and u.name like "%"#{name}"%"
+		</if>
+		<if test="status != null">
+			and (u.user_status =  #{status} or '0' = #{status})
+		</if>
+		<if test="sort != null and sort!=''">
+			order by ${sort}
+		</if>
+	</select>
+	
+	
+	<select id="count" parameterType="map" resultType="int">
+		select count(0) from(
+			select distinct(u.id)
+			from users u left join users_groups ug on ug.user_id = u.id 
+			left join groups g on g.id = ug.group_id
+			where  u.mail_active = '1' and g.group_name like '%Automation%'
+			<if test="loginName != null">
+				and u.username like "%"#{loginName}"%"
+			</if>
+			<if test="name != null">
+				and u.name like "%"#{name}"%"
+			</if>
+			<if test="status != null">
+				and (u.user_status =  #{status} or '0' = #{status})
+			</if>
+		) t
+	</select>
+
+	<select id="findUsersByUserIds" parameterType="list" resultType="User">
+		select distinct(u.id),u.username as loginName, u.name as name,u.useremail as email,u.user_status as status
+		from users u
+		where  u.mail_active = '1' 
+		AND u.id in 
+		<foreach collection="list" index="index" item="id" open="(" separator="," close=")" >  
+            #{id}  
+        </foreach>  
+	</select>
+	
+	<select id="findUserByLoginName" parameterType="map" resultType="User">
+		select distinct(u.id) as id, u.name as name , u.username as loginName, 
+		u.salt as salt, u.password as password,u.user_status as status,u.useremail as email
+		from users u left join users_groups ug on ug.user_id = u.id 
+		left join groups g on g.id = ug.group_id
+		where  u.mail_active = '1' and g.group_name like '%Automation%'
+		and (u.username=#{loginName} or u.useremail=#{loginName})
+	</select>
+	
+	<!-- 修改最后登录时间 -->
+	<select id="update_logged" parameterType="long" resultType="int">
+		select csa_update_logged(#{id})
+	</select>
+	
+</mapper> 

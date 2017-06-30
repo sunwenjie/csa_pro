@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- namespace必须指向Dao接口 -->
+<mapper namespace="com.asgab.repository.BlockTradeMapper">
+
+	<sql id="blockTradeColumns">
+		blockTradeId, payTranNum, processId, amount30, amount15
+	</sql>
+	
+	<insert id="insert" parameterType="com.asgab.entity.BlockTrade">
+		insert into ss_block_trade (payTranNum, processId, amount30, amount15) values (#{payTranNum}, #{processId}, #{amount30}, #{amount15})
+	</insert>
+	<select id="get" parameterType="long" resultType="BlockTrade">
+		select blockTradeId, <include refid="blockTradeColumns" />
+		from ss_block_trade
+		where  processId=#{processId}
+	</select>
+</mapper> 

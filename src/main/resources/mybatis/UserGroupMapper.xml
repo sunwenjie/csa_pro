@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- namespace必须指向Dao接口 -->
+<mapper namespace="com.asgab.repository.UserGroupMapper">
+
+	<select id="get" parameterType="Long" resultType="UserGroup">
+		select id, user_id,group_id,created_at
+		from ss_users_groups where id = #{id}
+	</select>
+
+	<select id="search" parameterType="map" resultType="UserGroup">
+		select id, user_id,group_id,created_at
+		from ss_users_groups where 1 = 1
+		<if test="user_id != null">
+			and user_id=#{user_id}
+		</if>
+		<if test="group_id != null">
+			and group_id=#{group_id}
+		</if>
+		<if test="sort != null and sort!=''">
+			order by ${sort}
+		</if>
+	</select>
+	
+	<select id="count" parameterType="map" resultType="int">
+		select count(1) 
+		from ss_users_groups where 1 = 1
+		<if test="user_id != null">
+			and user_id=#{user_id}
+		</if>
+		<if test="group_id != null">
+			and group_id=#{group_id}
+		</if>
+	</select>
+
+	<insert id="save" parameterType="UserGroup" useGeneratedKeys="true" keyProperty="id">
+		insert into ss_users_groups (user_id,group_id,created_at)
+		values (#{user_id},#{group_id},#{created_at})
+	</insert>
+	
+	<delete id="delete" parameterType="long">
+	     delete from  ss_users_groups where id=#{id}
+	</delete>
+</mapper> 

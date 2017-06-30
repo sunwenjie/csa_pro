@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- namespace必须指向Dao接口 -->
+<mapper namespace="com.asgab.repository.CustMasterMapper">
+
+	<sql id="custMasterColumns">
+		custPort,custUsername,custName,webName,advertiser,acctCreateDate,annualSvcFeeDate,annualSvcFee,
+		rewardsPercent,mgtFeePercent,remark1,remark2,am_contact,fin_contact,ops_contact,sales_contact,am_email,
+		fin_email,ops_email,sales_email,consumption,deleted,createBy,createDate,updateBy,updateDate
+	</sql>
+	
+	<select id="get" parameterType="long" resultType="CustMaster">
+		select id, <include refid="custMasterColumns" />
+		from ss_cust_master
+		where deleted = 1 and id=#{id}
+	</select>
+
+	<!-- 查询用户,演示: 1.输入用map传入多个参数 2.<where>语句, 智能添加where和and关键字 3.输出直接映射对象 -->
+	<select id="search" parameterType="map" resultType="CustMaster">
+		select id, <include refid="custMasterColumns" />
+		from ss_cust_master where deleted = 1
+		<if test="custName != null">
+			and custName like "%"#{custName}"%"
+		</if>
+		<if test="custUsername != null">
+			and custUsername like "%"#{custUsername}"%"
+		</if>
+		<if test="custPort != null">
+			and custPort like "%"#{custPort}"%"
+		</if>
+		<if test="sort != null and sort!=''">
+			order by ${sort}
+		</if>
+	</select>
+	
+	<select id="count" parameterType="map" resultType="int">
+		select count(1) 
+		from ss_cust_master where deleted = 1
+		<if test="custName != null">
+			and custName like "%"#{custName}"%"
+		</if>
+		<if test="custUsername != null">
+			and custUsername like "%"#{custUsername}"%"
+		</if>
+		<if test="custPort != null">
+			and custPort like "%"#{custPort}"%"
+		</if>
+	</select>
+
+	<insert id="save" parameterType="CustMaster" useGeneratedKeys="true" keyProperty="id">
+		insert into ss_cust_master (<include refid="custMasterColumns" />)
+		values (
+		#{custPort},#{custUsername},#{custName},#{webName},#{advertiser},#{acctCreateDate},#{annualSvcFeeDate},#{annualSvcFee},
+		#{rewardsPercent},#{mgtFeePercent},#{remark1},#{remark2},#{am_contact},#{fin_contact},#{ops_contact},#{sales_contact},#{am_email},
+		#{fin_email},#{ops_email},#{sales_email},#{consumption},1,#{createBy},#{createDate},#{updateBy},#{updateDate}
+			)
+	</insert>
+	
+	<!-- 插入用户： 1.由数据库生成id并赋值到user对象 2.输入用对象, 嵌套属性表达式#{team.id} -->
+	<insert id="update" parameterType="CustMaster">
+		update ss_cust_master set 
+			custPort = #{custPort},custUsername = #{custUsername},custName = #{custName},webName = #{webName},advertiser = #{advertiser},
+			acctCreateDate = #{acctCreateDate},annualSvcFeeDate = #{annualSvcFeeDate},annualSvcFee = #{annualSvcFee},
+			rewardsPercent = #{rewardsPercent},mgtFeePercent = #{mgtFeePercent},remark1 = #{remark1},remark2 = #{remark2},am_contact = #{am_contact},fin_contact = #{fin_contact},
+			ops_contact = #{ops_contact},sales_contact = #{sales_contact},am_email = #{am_email},
+			fin_email = #{fin_email},ops_email = #{ops_email},sales_email = #{sales_email},consumption = #{consumption},
+			deleted = #{deleted},createBy = #{createBy},createDate = #{createDate},updateBy=#{updateBy},updateDate=#{updateDate}
+		where id = #{id}
+	</insert>
+	
+	<!-- 删除用户 -->
+	<delete id="delete" parameterType="long">
+	     update ss_cust_master set deleted=2 where id=#{id}
+	</delete>
+	
+	<select id="existByCustUsername" parameterType="String" resultType="int">
+		select count(1) from ss_cust_master where deleted = 1 and `custUsername` = #{value}
+	</select>
+	
+	<select id="findByCustUsername" parameterType="String" resultType="CustMaster">
+		select id, <include refid="custMasterColumns" /> from ss_cust_master where deleted = 1 and `custUsername` = #{value}
+	</select>
+	
+	<select id="findByCustUsernameIncludeDeleted" parameterType="String" resultType="CustMaster">
+		select id, <include refid="custMasterColumns" /> from ss_cust_master where `custUsername` = #{value}
+	</select>
+	
+	<!-- 报表 -->
+	<select id="findCustBaseInfos" parameterType="map" resultType="CustBaseInfo">
+		select id, custName, advertiser, custUsername, custPort, am_contact, rewardsPercent, mgtFeePercent
+		from ss_cust_master where deleted = 1
+		<if test="advertiser != null">
+			and advertiser like "%"#{advertiser}"%"
+		</if>
+		<if test="custUsername != null">
+			and custUsername like "%"#{custUsername}"%"
+		</if>
+		<if test="sort != null and sort!=''">
+			order by ${sort}
+		</if>
+	</select>
+	
+	<select id="countCustBaseInfos" parameterType="map" resultType="int">
+		select count(1) 
+		from ss_cust_master where deleted = 1
+		<if test="advertiser != null">
+			and advertiser like "%"#{advertiser}"%"
+		</if>
+		<if test="custUsername != null">
+			and custUsername like "%"#{custUsername}"%"
+		</if>
+	</select>
+	
+</mapper> 

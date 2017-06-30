@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.asgab.repository.GroupMapper">
+
+	<select id="search" parameterType="map" resultType="Group">
+		select g.id,g.group_name, g.group_type,g.description,g.status,g.created_at,g.updated_at,g.agency_id,
+		g.function_code,count(ug.user_id) as memberCount
+		from ss_groups g left join ss_users_groups ug on g.id=ug.group_id where 1=1
+		<if test="id != null">
+			and g.id=#{id}
+		</if>
+		<if test="group_name != null">
+			and g.group_name like "%"#{group_name}"%"
+		</if>
+		<if test="group_type != null">
+			and g.group_type = #{group_type}
+		</if>
+		<if test="status != null">
+			and (g.status = #{status} or '0' = #{status})
+		</if>
+		<if test="user_id != null">
+			and (ug.user_id = #{user_id})
+		</if>
+		group by g.id
+		<if test="sort != null and sort!=''">
+			order by ${sort}
+		</if>
+	</select>
+	
+	<select id="count" parameterType="map" resultType="int">
+		select count(1) 
+		from ss_groups g,ss_users_groups ug where g.id = ug.group_id
+		<if test="id != null">
+			and id=#{id}
+		</if>
+		<if test="group_name != null">
+			and group_name like "%"#{group_name}"%"
+		</if>
+		<if test="status != null">
+			and (status = #{status} or '0' = #{status})
+		</if>
+		<if test="group_type != null">
+			and group_type = #{group_type}
+		</if>
+		<if test="user_id != null">
+			and (ug.user_id = #{user_id})
+		</if>
+	</select>
+
+	<select id="get" parameterType="long" resultType="Group">
+		select id,group_name, group_type,description,status,created_at,updated_at,agency_id,function_code
+		from ss_groups
+		where id=#{id}
+	</select>
+	
+	<select id="findGroupsByGroupIds" parameterType="list" resultType="Group">
+		select id,group_name, group_type,description,status,created_at,updated_at,agency_id,function_code
+		from ss_groups
+		where  status = 'Active'
+		AND id in 
+		<foreach collection="list" index="index" item="id" open="(" separator="," close=")" >  
+            #{id}  
+        </foreach>  
+	</select>
+	
+	<select id="findGroupByGroupName" parameterType="String" resultType="Group">
+		select id,group_name, group_type,description,status,created_at,updated_at,agency_id,function_code
+		from ss_groups where status = 'Active' and group_name = #{group_name}
+	</select>
+	
+	<select id="findGroupIdsByGroupType" parameterType="String" resultType="String">
+		select id
+		from ss_groups
+		where  status = 'Active'
+		AND group_type = #{group_type}
+	</select>
+
+	<select id="findGroupByUserId" parameterType="Long" resultType="Group">
+        select g.id,g.group_name, g.group_type,g.description,g.status,g.created_at,g.updated_at,g.agency_id,g.function_code
+		from ss_groups g ,ss_users_groups ug where g.id= ug.group_id and g.status = 'Active' and ug.user_id = #{user_id}
+	</select>
+	<insert id="save" parameterType="Group" useGeneratedKeys="true" keyProperty="id">
+		insert into ss_groups (
+		group_name, group_type,description,status,created_at,updated_at,agency_id,function_code)
+		values (
+		#{group_name},#{group_type},#{description},#{status},#{created_at},#{updated_at},1,#{function_code})
+	</insert>
+	
+	<insert id="update" parameterType="Group">
+		update ss_groups set 
+		group_name=#{group_name}, 
+		group_type=#{group_type},
+		description=#{description},
+		status=#{status},
+		updated_at=#{updated_at},
+		agency_id=#{agency_id},
+		function_code=#{function_code}
+		where id = #{id}
+	</insert>
+	
+	<insert id="delete" parameterType="Long">
+		delete from ss_groups where id = #{id}
+	</insert>
+	
+</mapper> 

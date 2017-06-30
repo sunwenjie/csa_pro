@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- namespace必须指向Dao接口 -->
+<mapper namespace="com.asgab.repository.MailMapper">
+
+	<select id="get" parameterType="long" resultType="Mail">
+		SELECT id,receiver,subject,paytranNum,processId,urlConfirm,urlReject,template,createDate,sendDate,status
+		FROM ss_mail where id = #{id}
+	</select>
+	
+	<select id="getNotSendMails" parameterType="long" resultType="Mail">
+		SELECT id,receiver,subject,paytranNum,processId,urlConfirm,urlReject,template,createDate,sendDate,status
+		FROM ss_mail where status = 2
+	</select>
+
+
+	<insert id="save" parameterType="Mail" useGeneratedKeys="true" keyProperty="id">
+		insert into ss_mail (
+			receiver,subject,paytranNum,processId,urlConfirm,urlReject,template,createDate,sendDate,status)
+		values (
+			#{receiver},#{subject},#{paytranNum},#{processId},#{urlConfirm},#{urlReject},#{template},#{createDate},#{sendDate},1)
+	</insert>
+	
+	<update id="update" parameterType="Process">
+		update ss_mail set 
+		sendDate = #{sendDate},
+		status = #{status}
+		where id = #{id}
+	</update>
+	
+	<insert id="saveMailReceiver" parameterType="MailReceiver" useGeneratedKeys="true" keyProperty="id">
+		insert into ss_mail_receivers (
+			mailId,mailAddress,copyTo)
+		values (
+			#{mailId},#{mailAddress},#{copyTo})
+	</insert>
+	
+	<select id="getMailReceiversByMailId" parameterType="long" resultType="MailReceiver">
+		SELECT id,mailId,mailAddress,copyTo
+		FROM ss_mail_receivers where mailId = #{mailId}
+	</select>
+
+</mapper> 

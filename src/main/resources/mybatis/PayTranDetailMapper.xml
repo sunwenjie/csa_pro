@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- namespace必须指向Dao接口 -->
+<mapper namespace="com.asgab.repository.PayTranDetailMapper">
+
+	<select id="get" parameterType="long" resultType="PayTranDetail">
+		SELECT d.tranNumDetail,d.tranNum,d.payCode,d.bdUserName,d.amount,d.amountInRMB,d.rewards,d.mgtFee,d.additionAmount,
+		d.rebateValue,d.deleted,d.createDate,d.createBy,d.updateDate,d.updateBy,d.isRechargeOnline,p.pay_purpose as payCodeZH,p.pay_purposeEn as payCodeEn,
+        c.custPort as bdPort
+		FROM ss_pay_tran_detail d left join ss_pay_purpose p on p.id=d.paycode 
+		left join ss_cust_master c  on c.custUsername = d.bdUserName where d.deleted=1  and d.tranNum=#{tranNum}
+	</select>
+
+    <select id="getPayTranDetailByPayCode" parameterType="map" resultType="PayTranDetail">
+        SELECT d.tranNumDetail,d.tranNum,d.payCode,d.bdUserName,d.amount,d.amountInRMB,d.rewards,d.mgtFee,d.additionAmount,
+		d.rebateValue,d.deleted,d.createDate,d.createBy,d.updateDate,d.updateBy,d.isRechargeOnline
+		FROM ss_pay_tran_detail d
+		where d.deleted=1  and d.tranNum=#{tranNum} and d.payCode=#{payCode}
+    </select>
+
+	<insert id="save" parameterType="PayTranDetail" useGeneratedKeys="true" keyProperty="tranNumDetail">
+		insert into ss_pay_tran_detail (
+		tranNum,payCode,bdUserName,amount,amountInRMB,rewards,mgtFee,additionAmount,rebateValue,deleted,createDate,createBy,isRechargeOnline)
+		values (
+		#{tranNum},#{payCode},#{bdUserName},#{amount},#{amountInRMB},#{rewards},#{mgtFee},#{additionAmount},#{rebateValue},1,#{createDate},#{createBy},#{isRechargeOnline})
+	</insert>
+	
+	<insert id="update" parameterType="PayTranDetail">
+		update ss_pay_tran_detail set 
+		payCode=#{payCode},
+		bdUserName=#{bdUserName},
+		amount=#{amount},
+		amountInRMB=#{amountInRMB},
+		rewards=#{rewards},
+		mgtFee=#{mgtFee},
+		additionAmount=#{additionAmount},
+		rebateValue=#{rebateValue},
+		deleted=#{deleted},
+		updateDate=#{updateDate},
+		updateBy=#{updateBy},
+		isRechargeOnline=#{isRechargeOnline}
+		where tranNumDetail = #{tranNumDetail}
+	</insert>
+	
+	<delete id="delete" parameterType="long">
+	     update ss_pay_tran_detail set deleted=2 where tranNumDetail = #{tranNumDetail}
+	</delete>
+	
+	<select id="countByPayCode" parameterType="String" resultType="int">
+		select count(1) from ss_pay_tran_detail where deleted = 1 and payCode = #{payCode}
+	</select>
+</mapper> 

@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- namespace必须指向Dao接口 -->
+<mapper namespace="com.asgab.repository.PayTranHeaderMapper">
+
+	<select id="get" parameterType="long" resultType="PayTranHeader">
+		SELECT tranNum,tranDate,currency,email,totalAmount,status,deleted,remarks,description,createDate,createBy,updateDate,updateBy,isAmSupport
+		FROM ss_pay_tran_header where deleted=1 and tranNum=#{tranNum}
+	</select>
+
+	<select id="search" parameterType="map" resultType="PayTranHeader">
+		SELECT distinct(h.tranNum),h.tranDate,h.currency,h.email,h.totalAmount,h.status,h.deleted,h.remarks,h.description,h.createDate,h.createBy,h.updateDate,h.updateBy,h.isAmSupport
+		FROM ss_pay_tran_header h 
+		<if test="bdusername !=null">
+			left join ss_pay_tran_detail d on d.trannum=h.trannum
+	    </if>
+		where h.deleted = 1
+		<if test="tranStartDate != null">
+			<![CDATA[
+			and date_format(h.tranDate,'%Y-%m-%d') >= #{tranStartDate} 
+			]]>
+		</if>
+		<if test="tranEndDate != null">
+			<![CDATA[
+			and date_format(h.tranDate,'%Y-%m-%d') <= #{tranEndDate}
+			]]> 
+		</if>
+		<if test="email != null">
+			and h.email like "%"#{email}"%"
+		</if>
+		<if test="tranNum != null">
+			and h.tranNum = #{tranNum}
+		</if>
+		<if test="status !=null">
+			and (h.status = #{status} or '0' = #{status})
+	    </if>
+		<if test="bdusername !=null">
+			and d.bdusername like "%"#{bdusername}"%"
+	    </if>
+		<if test="sort != null and sort!=''">
+			order by ${sort}
+		</if>
+	</select>
+	
+	<select id="count" parameterType="map" resultType="int">
+		select count(distinct(h.trannum)) 
+		from ss_pay_tran_header  h 
+		<if test="bdusername !=null">
+			left join ss_pay_tran_detail d on d.trannum=h.trannum
+	    </if>
+		 where h.deleted = 1
+		<if test="tranStartDate != null">
+			<![CDATA[
+			and date_format(h.tranDate,'%Y-%m-%d') >= #{tranStartDate} 
+			]]>
+		</if>
+		<if test="tranEndDate != null">
+			<![CDATA[
+			and date_format(h.tranDate,'%Y-%m-%d') <= #{tranEndDate}
+			]]> 
+		</if>
+		<if test="email != null">
+			and h.email like "%"#{email}"%"
+		</if>
+		<if test="tranNum != null">
+			and h.tranNum = #{tranNum}
+		</if>
+		<if test="status !=null">
+			and (h.status = #{status} or '0' = #{status})
+	    </if>
+		<if test="bdusername !=null">
+			and d.bdusername like "%"#{bdusername}"%"
+	    </if>
+	</select>
+
+	<insert id="save" parameterType="PayTranHeader" useGeneratedKeys="true" keyProperty="tranNum">
+		insert into ss_pay_tran_header (
+		tranDate,currency,email,totalAmount,status,deleted,remarks,description,createDate,createBy)
+		values (
+		#{tranDate},#{currency},#{email},#{totalAmount},#{status},1,#{remarks},#{description},#{createDate},#{createBy})
+	</insert>
+	
+	<insert id="update" parameterType="PayTranHeader">
+		update ss_pay_tran_header set 
+		tranDate=#{tranDate},
+		currency=#{currency},
+		email=#{email},
+		totalAmount=#{totalAmount},
+		status=#{status},
+		deleted=#{deleted},
+		remarks=#{remarks},
+		description=#{description},
+		updateDate=#{updateDate},
+		updateBy=#{updateBy},
+		isAmSupport=#{isAmSupport}
+		where tranNum = #{tranNum}
+	</insert>
+	
+	<!-- 删除用户 -->
+	<delete id="delete" parameterType="long">
+	     update ss_pay_tran_header set deleted=2 where tranNum = #{tranNum}
+	</delete>
+	
+	<!-- 报表 - 客服付款信息 -->
+	<select id="getCustPaymentInfos" parameterType="map" resultType="CustPaymentInfo">
+        select
+        h.tranNum as tranNum,h.tranDate as paymentDate,m.custName as custName,
+        m.advertiser as advertiser,m.custPort as custPort,
+        d.amount as amount,d.amountInRMB as amountInRmb,d.paycode as payCode,d.additionAmount as topupAmount,
+        d.rebateValue as rebateAmount,m.remark1 as custRemark,d.mgtFee as mgtFee,h.currency as currency,
+        (select p.operatedate from ss_process p where  p.paytrannum = h.trannum and  p.status=4 and p.isupdated = 1) AS topupDate,
+        (select p.operatedate from ss_process p where  p.paytrannum = h.trannum and  p.status=5 and p.isupdated = 1) AS opsDate,
+        (select p.realAddAmount from ss_process p where  p.paytrannum = h.trannum and  p.status=3 and p.isupdated = 1) AS realAddAmount,
+        (select p.description from ss_process p where  p.paytrannum = h.trannum and  p.status=3 and p.isupdated = 1) AS description,
+        d.bdusername as bdUserName
+        from
+        csa.ss_pay_tran_header h
+        left join (select trannum,bdUsername,payCode,isRechargeOnline,sum(amount) as amount,sum(amountInRmb) as amountInRmb,sum(additionAmount) as additionAmount,sum(rebateValue) as rebateValue,sum(mgtFee) as mgtFee from ss_pay_tran_detail group by tranNum,bdUserName,payCode) d on h.trannum=d.trannum
+        left join csa.ss_cust_master m on d.bdUsername = m.custUsername
+        where h.status = 6
+		<if test="advertiser != null">
+			and m.advertiser like "%"#{advertiser}"%"
+		</if>
+		<if test="paymentDateStart != null">
+			and h.createDate BETWEEN concat(#{paymentDateStart},' 00:00:00') and concat(#{paymentDateEnd},' 23:59:59')
+		</if>
+		<if test="bdUserName != null">
+			and d.bdusername like "%"#{bdUserName}"%"
+		</if>
+		<if test="sort != null and sort!=''">
+			order by ${sort}
+		</if>
+	</select>
+	
+	<select id="countCustPaymentInfos" parameterType="map" resultType="int">
+			select count(0)
+			from 
+					ss_pay_tran_header h 
+					left join (select trannum,bdUsername,payCode,isRechargeOnline,sum(amount) as amount,sum(amountInRmb) as amountInRmb,sum(additionAmount) as additionAmount,sum(rebateValue) as rebateValue,sum(mgtFee) as mgtFee from ss_pay_tran_detail group by tranNum,bdUserName,payCode) d on h.trannum=d.trannum
+					left join ss_cust_master m on d.bdUsername = m.custUsername
+					where h.status = 6 
+			<if test="advertiser != null">
+				and m.advertiser like "%"#{advertiser}"%"
+			</if>
+			<if test="paymentDateStart != null">
+				and h.createDate BETWEEN concat(#{paymentDateStart},' 00:00:00') and concat(#{paymentDateEnd},' 23:59:59')
+			</if>
+			<if test="bdUserName != null">
+				and d.bdusername like "%"#{bdUserName}"%"
+			</if>
+			
+	</select>
+	
+	<select id="sumTotalAddAmount" parameterType="long" resultType="double">
+		select ifnull(sum(amountInRMB),0) from ss_pay_tran_detail where payCode = 1 and tranNum = #{tranNum}
+	</select>
+
+	<select id="sumTotalAddtionAmount" parameterType="long" resultType="double">
+		select ifnull(sum(additionAmount),0.0) from ss_pay_tran_detail where payCode = 1 and tranNum = #{tranNum} and deleted = 1
+	</select>
+
+</mapper> 

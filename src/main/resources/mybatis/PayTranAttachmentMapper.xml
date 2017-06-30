@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- namespace必须指向Dao接口 -->
+<mapper namespace="com.asgab.repository.PayTranAttachmentMapper">
+
+	<select id="get" parameterType="long" resultType="PayTranAttachement">
+		SELECT attachmentId,tranNum,processId,fileName,showName,path,deleted,createDate,createBy,updateDate,updateBy
+		FROM ss_pay_tran_attachment where deleted=1 and tranNum=#{tranNum}
+	</select>
+	
+	<select id="getByProcessId" parameterType="long" resultType="PayTranAttachement">
+		SELECT attachmentId,tranNum,processId,fileName,showName,path,deleted,createDate,createBy,updateDate,updateBy
+		FROM ss_pay_tran_attachment where deleted=1 and processId=#{processId}
+	</select>
+	
+	<select id="getById" parameterType="long" resultType="PayTranAttachement">
+		SELECT attachmentId,tranNum,processId,fileName,showName,path,deleted,createDate,createBy,updateDate,updateBy
+		FROM ss_pay_tran_attachment where deleted=1 and attachmentId=#{attachmentId}
+	</select>
+
+	<insert id="save" parameterType="PayTranAttachement" useGeneratedKeys="true" keyProperty="attachmentId">
+		insert into ss_pay_tran_attachment (
+		tranNum,processId,fileName,showName,path,deleted,createDate,createBy)
+		values (
+		#{tranNum},#{processId},#{fileName},#{showName},#{path},1,#{createDate},#{createBy})
+	</insert>
+	
+	<update id="update" parameterType="PayTranAttachement">
+		update ss_pay_tran_attachment set
+		tranNum=#{tranNum},
+		processId=#{processId},
+		fileName=#{fileName},
+		showName=#{showName},
+		path=#{path},
+		deleted=#{deleted},
+		createDate=#{createDate},
+		createBy=#{createBy}
+		where attachmentId=#{attachmentId}
+		
+	</update>
+	
+	<delete id="delete" parameterType="long">
+	     update ss_pay_tran_attachment set deleted=2 where attachmentId = #{attachmentId}
+	</delete>
+</mapper> 

@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- namespace必须指向Dao接口 -->
+<mapper namespace="com.asgab.repository.PaymentPurposeMapper">
+
+	<sql id="paymentPurposeMasterColumns">
+		pay_code, pay_purpose, pay_purposeEN,createBy, createDate, deleted
+	</sql>
+	
+	<select id="get" parameterType="long" resultType="PaymentPurpose">
+		select id, <include refid="paymentPurposeMasterColumns" />
+		from ss_pay_purpose
+		where deleted = 1 and id=#{id}
+	</select>
+
+	<select id="search" parameterType="map" resultType="PaymentPurpose">
+		select id, <include refid="paymentPurposeMasterColumns" />
+		from ss_pay_purpose where deleted = 1
+		<if test="pay_code != null">
+			and pay_code like "%"#{pay_code}"%"
+		</if>
+		<if test="pay_purpose != null and pay_purpose != ''">
+			and pay_purpose like "%"#{pay_purpose}"%"
+		</if>
+		<if test="pay_purposeEN != null and pay_purposeEN != ''">
+			and pay_purposeEN like "%"#{pay_purposeEN}"%"
+		</if>
+		<if test="sort != null and sort!=''">
+			order by ${sort}
+		</if>
+	</select>
+	
+	<select id="count" parameterType="map" resultType="int">
+		select count(1) 
+		from ss_pay_purpose where deleted = 1
+		<if test="pay_code != null">
+			and pay_code like "%"#{pay_code}"%"
+		</if>
+		<if test="pay_purpose != null and pay_purpose != ''">
+			and pay_purpose like "%"#{pay_purpose}"%"
+		</if>
+		<if test="pay_purposeEN != null and pay_purposeEN != ''">
+			and pay_purposeEN like "%"#{pay_purposeEN}"%"
+		</if>
+	</select>
+
+	<insert id="save" parameterType="PaymentPurpose" useGeneratedKeys="true" keyProperty="id">
+		insert into ss_pay_purpose (<include refid="paymentPurposeMasterColumns" />)
+		values (
+			#{pay_code}, #{pay_purpose}, #{pay_purposeEN},#{createBy}, #{createDate}, 1
+			)
+	</insert>
+	
+	<insert id="update" parameterType="PaymentPurpose">
+		update ss_pay_purpose set 
+			pay_code = #{pay_code}, 
+			pay_purpose = #{pay_purpose}, 
+			pay_purposeEN = #{pay_purposeEN},
+			createBy = #{createBy}, 
+			createDate = #{createDate}, 
+			deleted = #{deleted}
+		where id = #{id}
+	</insert>
+	
+	<delete id="delete" parameterType="long">
+	     update ss_pay_purpose set deleted=2 where id=#{id}
+	</delete>
+	
+</mapper> 

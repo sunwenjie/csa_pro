@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- namespace必须指向Dao接口 -->
+<mapper namespace="com.asgab.repository.CurrMasterMapper">
+
+	<sql id="currMasterColumns">
+		curr_code, curr_name, curr_rate, lastUpdateRate, lastUpdateDate, lastUpdateBy, updateDate, updateBy, deleted
+	</sql>
+	
+	<sql id="currMasterColumns-for-join">
+		a.curr_code, a.curr_name, a.curr_rate, a.lastUpdateRate, a.lastUpdateDate, a.lastUpdateBy, a.updateDate, a.updateBy, a.deleted
+	</sql>
+	
+	<select id="get" parameterType="long" resultType="CurrMaster">
+		select id, <include refid="currMasterColumns" />
+		from ss_curr_master
+		where deleted = 1 and id=#{id}
+	</select>
+
+	<select id="search" parameterType="map" resultType="CurrMaster">
+		select a.id, <include refid="currMasterColumns-for-join" />, b.`name` as lastUpdateName
+		from ss_curr_master a left join ss_user b on a.lastUpdateBy = b.id
+		where a.deleted = 1
+		<if test="curr_code != null">
+			and a.curr_code like "%"#{curr_code}"%"
+		</if>
+		<if test="curr_name != null">
+			and a.curr_name like "%"#{curr_name}"%"
+		</if>
+		<if test="sort != null and sort!=''">
+			order by ${sort}
+		</if>
+	</select>
+	
+	<select id="count" parameterType="map" resultType="int">
+		select count(1) 
+		from ss_curr_master where deleted = 1
+		<if test="curr_code != null">
+			and curr_code like "%"#{curr_code}"%"
+		</if>
+		<if test="curr_name != null">
+			and curr_name like "%"#{curr_name}"%"
+		</if>
+	</select>
+
+	<insert id="save" parameterType="CurrMaster" useGeneratedKeys="true" keyProperty="id">
+		insert into ss_curr_master (<include refid="currMasterColumns" />)
+		values (
+			#{curr_code}, #{curr_name}, #{curr_rate}, #{lastUpdateRate}, #{lastUpdateDate}, #{lastUpdateBy}, #{updateDate}, #{updateBy}, 1
+			)
+	</insert>
+	
+	<insert id="update" parameterType="CurrMaster">
+		update ss_curr_master set 
+			curr_code = #{curr_code}, 
+			curr_name = #{curr_name}, 
+			curr_rate = #{curr_rate}, 
+			lastUpdateRate = #{lastUpdateRate}, 
+			lastUpdateDate = #{lastUpdateDate}, 
+			lastUpdateBy = #{lastUpdateBy},
+			updateDate = #{updateDate},
+			updateBy = #{updateBy},
+			deleted = #{deleted}
+		where id = #{id}
+	</insert>
+	
+	<delete id="delete" parameterType="long">
+	     update ss_curr_master set deleted=2 where id=#{id}
+	</delete>
+	
+</mapper> 

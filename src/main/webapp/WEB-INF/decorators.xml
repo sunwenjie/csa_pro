@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<decorators defaultdir="/WEB-INF/layouts/">
+	<excludes>
+		<pattern>/static/*</pattern>
+		<pattern>/process/*</pattern>
+		<pattern>/api/*</pattern>
+		<pattern>/login</pattern> 
+		<pattern>/paytran/create</pattern>
+		<pattern>/ajax/latestExchangeRate</pattern>
+		<pattern>/group/find/*</pattern>
+	</excludes>
+	
+	<decorator name="layout" page="layout.jsp">
+		<pattern>/*</pattern>
+	</decorator>
+</decorators>
